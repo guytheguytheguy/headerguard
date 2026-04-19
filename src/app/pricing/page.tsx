@@ -1,4 +1,5 @@
 import { PLANS } from "@/lib/plans";
+import { UpgradeButton } from "@/components/upgrade-button";
 
 export default function PricingPage() {
   return (
@@ -48,11 +49,7 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-          <button
-            className="w-full py-2.5 px-4 bg-red-600 hover:bg-red-500 rounded-lg text-sm font-medium transition-colors"
-          >
-            Upgrade to Pro
-          </button>
+          <UpgradeButton />
         </div>
       </div>
     </div>
