@@ -31,7 +31,7 @@ export function ScanForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error);
+        setError(data.error || "Scan failed. Please try again.");
         return;
       }
 
