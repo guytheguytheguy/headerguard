@@ -1,0 +1,115 @@
+{
+  "_meta": {
+    "artifact_type": "Kynvo Marketing Artifact",
+    "portfolio": "Veridux Labs",
+    "portfolio_url": "https://veridux.ai",
+    "generated": "2026-04-14"
+  },
+  "product_name": "HeaderGuard",
+  "url": "https://headerguard.veridux.ai",
+  "tagline": "Know your headers. Own your security.",
+  "value_proposition": "HeaderGuard gives developers and security engineers instant HTTP security header analysis plus continuous real-time monitoring with regression alerts — so header misconfigurations are caught before attackers find them, not after.",
+  "target_audience": [
+    "Security engineers at SaaS startups and scale-ups",
+    "Backend developers who own deployment pipelines",
+    "DevOps and platform engineers running CI/CD systems",
+    "CTOs preparing for SOC 2 or ISO 27001 audits",
+    "Freelance developers conducting security reviews for clients",
+    "Agencies building web applications for regulated industries"
+  ],
+  "pain_points": [
+    "Developers forget to set security headers after refactors or framework upgrades",
+    "Free scanners (SecurityHeaders.com, Mozilla Observatory) are one-shot tools with no monitoring",
+    "Header regressions after deployments go undetected for days or weeks",
+    "Security audit checklists are manual and not integrated into the development workflow",
+    "Remediation guidance from existing tools is vague and not framework-specific",
+    "Sharing scan results with non-technical stakeholders requires manual report generation"
+  ],
+  "key_features": [
+    "Instant HTTP security header scan for any public URL",
+    "A-F header score with per-header pass/fail breakdown",
+    "Real-time monitoring with deployment regression detection",
+    "Slack and email alerts when headers change or degrade",
+    "90-day header score history and trend charts",
+    "Copy-paste remediation code snippets per framework (Next.js, Express, Nginx, Caddy)",
+    "Shareable public scan report URLs",
+    "API access for CI/CD integration (Pro/Team tier)",
+    "Bulk URL scanning for agencies managing multiple client sites",
+    "CyberOS integration for unified security dashboard"
+  ],
+  "pricing_model": {
+    "free": {
+      "price": 0,
+      "billing": "forever",
+      "limits": {
+        "scans_per_day": 10,
+        "monitored_urls": 1,
+        "history_days": 7
+      }
+    },
+    "pro": {
+      "price": 9,
+      "billing": "monthly",
+      "limits": {
+        "scans_per_day": "unlimited",
+        "monitored_urls": 20,
+        "history_days": 90,
+        "alerts": ["slack", "email"],
+        "seats": 1
+      }
+    },
+    "team": {
+      "price": 29,
+      "billing": "monthly",
+      "limits": {
+        "scans_per_day": "unlimited",
+        "monitored_urls": "unlimited",
+        "history_days": 365,
+        "alerts": ["slack", "email", "webhook"],
+        "seats": 5,
+        "api_access": true,
+        "custom_reports": true
+      }
+    }
+  },
+  "competitive_advantages": [
+    "Only free-tier tool with continuous monitoring (not just one-shot scans)",
+    "Framework-specific remediation snippets (Next.js headers config, Nginx directives)",
+    "Integrated into the Veridux Labs security ecosystem via CyberOS",
+    "Deployment regression alerts — triggered by header changes, not just score thresholds",
+    "Developer-native UI with raw header inspection and cURL equivalents",
+    "API-first architecture enables CI/CD gate integration at Pro tier"
+  ],
+  "cross_promotion_targets": [
+    {
+      "name": "CyberOS",
+      "url": "https://cyberos.veridux.ai",
+      "angle": "Primary integration partner. CyberOS Pro tier surfaces HeaderGuard scan results in the unified security dashboard. Shared 'Veridux Security Suite' positioning."
+    },
+    {
+      "name": "AgenticNode",
+      "url": "https://agenticnode.io",
+      "angle": "Pre-built workflow node: 'Scan URL with HeaderGuard after deployment.' AgenticNode users automate header checks as part of their post-deploy pipeline."
+    },
+    {
+      "name": "Kynvo",
+      "url": "https://kynvo.ai",
+      "angle": "Kynvo AI marketing surfaces HeaderGuard in developer-tool campaigns. Co-market to SaaS founders who use both products."
+    },
+    {
+      "name": "EndOfCoding",
+      "url": "https://endofcoding.com",
+      "angle": "Tutorial content: 'Securing Your Next.js App: HTTP Headers Guide 2026' uses HeaderGuard as the live demo tool. Top-of-funnel SEO for both products."
+    },
+    {
+      "name": "LLMHire",
+      "url": "https://llmhire.com",
+      "angle": "Security engineer job descriptions include HeaderGuard as a recommended tooling mention. Employer brand play and passive product discovery."
+    },
+    {
+      "name": "Vibe Coding Academy",
+      "url": "https://veridux.ai",
+      "angle": "Required tool in 'Deploying Secure Next.js Apps' course module. Drives free-tier signups from developers at the peak learning moment."
+    }
+  ]
+}

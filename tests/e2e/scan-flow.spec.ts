@@ -53,10 +53,10 @@ test.describe("Header Scan Flow", () => {
     // Score out of 100
     await expect(page.getByText(/\/100/)).toBeVisible();
 
-    // Should have header result cards
-    await expect(page.getByText("Strict-Transport-Security")).toBeVisible();
-    await expect(page.getByText("Content-Security-Policy")).toBeVisible();
-    await expect(page.getByText("X-Content-Type-Options")).toBeVisible();
+    // Should have header result cards (use exact match to target the header name span, not recommendation text)
+    await expect(page.getByText("Strict-Transport-Security", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Content-Security-Policy", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("X-Content-Type-Options", { exact: true }).first()).toBeVisible();
   });
 
   test("scan results show at least 10 header checks", async ({ page }) => {
