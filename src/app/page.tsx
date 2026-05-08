@@ -10,6 +10,10 @@ export default function HomePage() {
         <p className="text-gray-400 text-lg max-w-xl mx-auto">
           Check if your website has the right HTTP security headers.
           Get an A-F grade, detailed analysis, and copy-paste fix code for your framework.
+          Free for one-off scans.{" "}
+          <a href="/pricing" className="text-red-400 hover:text-red-300 underline underline-offset-2">
+            See Pro plans &rarr;
+          </a>
         </p>
       </div>
 
