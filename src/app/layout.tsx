@@ -5,6 +5,22 @@ export const metadata: Metadata = {
   title: "HeaderGuard - Security Header Scanner",
   description: "Scan any website for security headers. Get A-F grades, detailed analysis, and framework-specific fix code. Free security header audit.",
   keywords: ["security headers", "http headers", "security scanner", "HSTS", "CSP", "X-Frame-Options", "web security"],
+  metadataBase: new URL("https://headerguard.veridux.ai"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "HeaderGuard - Security Header Scanner",
+    description: "Scan any website for security headers. Get A-F grades, detailed analysis, and framework-specific fix code. Free security header audit.",
+    url: "https://headerguard.veridux.ai",
+    siteName: "HeaderGuard",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "HeaderGuard - Security Header Scanner",
+    description: "Scan any website for security headers. Get A-F grades, detailed analysis, and framework-specific fix code. Free security header audit.",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
