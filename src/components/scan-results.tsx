@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import type { ScanResult, Grade, Severity } from "@/lib/header-scan";
 
 const GRADE_COLORS: Record<Grade, string> = {
@@ -17,6 +18,30 @@ const SEVERITY_LABELS: Record<Severity, { label: string; color: string }> = {
   low: { label: "Low", color: "text-blue-400" },
   info: { label: "Info", color: "text-gray-400" },
 };
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard not available — silently ignore
+    }
+  }, [text]);
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="text-xs text-gray-500 hover:text-gray-300 transition-colors ml-2 shrink-0"
+      title="Copy to clipboard"
+    >
+      {copied ? "✓ copied" : "copy"}
+    </button>
+  );
+}
 
 export function ScanResults({ result }: { result: ScanResult }) {
   const passed = result.headers.filter((h) => h.grade === "A" || h.grade === "B").length;
@@ -74,9 +99,12 @@ export function ScanResults({ result }: { result: ScanResult }) {
             <p className="text-xs text-gray-400 mb-1">{header.description}</p>
 
             {header.grade !== "A" && (
-              <p className="text-xs text-red-300 mt-2">
-                {header.recommendation}
-              </p>
+              <div className="flex items-start gap-1 mt-2">
+                <p className="text-xs text-red-300 font-mono break-all flex-1">
+                  {header.recommendation}
+                </p>
+                <CopyButton text={header.recommendation} />
+              </div>
             )}
           </div>
         ))}
