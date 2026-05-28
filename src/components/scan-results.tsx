@@ -109,6 +109,29 @@ export function ScanResults({ result }: { result: ScanResult }) {
           </div>
         ))}
       </div>
+
+      {/* Pro upsell — show when there are fixable issues */}
+      {failed > 0 && (
+        <div className="mt-6 p-5 bg-red-500/5 border border-red-500/20 rounded-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-white mb-1">
+                Get alerted when your headers regress
+              </p>
+              <p className="text-xs text-gray-400">
+                HeaderGuard Pro monitors your site daily and notifies you via Slack or email
+                if a header drops — plus CI/CD API, bulk scanning, and PDF export.
+              </p>
+            </div>
+            <a
+              href="/pricing"
+              className="shrink-0 py-2 px-5 bg-red-600 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition-colors text-center"
+            >
+              Try Pro — $9/mo
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
