@@ -1,6 +1,6 @@
 # HeaderGuard Changelog
 
-## 2026-05-31 — (pending)
+## 2026-05-31 — 5db7762
 **Daily: checkout success banner**
 - `checkout-success-banner.tsx`: New client component — shows green "You're now on HeaderGuard Pro!" flash when user returns from Stripe with `?checkout=success`; cleans query param via `window.history.replaceState` without page reload
 - `page.tsx`: Renders `<CheckoutSuccessBanner />` above the hero
