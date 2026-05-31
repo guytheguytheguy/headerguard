@@ -1,4 +1,5 @@
 import { ScanForm } from "@/components/scan-form";
+import { CheckoutSuccessBanner } from "@/components/checkout-success-banner";
 
 const FAQ = [
   {
@@ -40,6 +41,8 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
+
+      <CheckoutSuccessBanner />
 
       <div className="text-center mb-10">
         <h1 className="text-4xl font-bold tracking-tight mb-3">

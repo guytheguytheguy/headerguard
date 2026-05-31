@@ -1,5 +1,12 @@
 # HeaderGuard Changelog
 
+## 2026-05-31 — (pending)
+**Daily: checkout success banner**
+- `checkout-success-banner.tsx`: New client component — shows green "You're now on HeaderGuard Pro!" flash when user returns from Stripe with `?checkout=success`; cleans query param via `window.history.replaceState` without page reload
+- `page.tsx`: Renders `<CheckoutSuccessBanner />` above the hero
+- Uses `useEffect` + `window.location` instead of `useSearchParams()` to avoid Next.js prerender incompatibility
+- TypeScript: PASS · Build: PASS
+
 ## 2026-05-28 — 5c013fc
 **Daily: Pro upsell banner + FAQ section with JSON-LD**
 - `scan-results.tsx`: Added Pro upsell CTA after scan results when site has failing headers — "Get alerted when headers regress" → /pricing
