@@ -1,5 +1,11 @@
 # HeaderGuard Changelog
 
+## 2026-06-01 — d0a713d, 9e09cf0
+**Daily: social share buttons + Vercel deploy fix**
+- `scan-results.tsx`: Added `ShareResults` component — X/Twitter, LinkedIn, and copy-link buttons appear after every scan; share text includes URL, grade, and score for social proof
+- `next.config.ts`: Removed `outputFileTracingRoot` (caused path-doubling error on direct Vercel CLI deploy); project has own node_modules so monorepo root tracing was unnecessary
+- Vercel deploy: READY (`dpl_AETkMb2VT3qCproA37kG3jsenoXw`) · TypeScript: PASS · Unit tests: 19/19 PASS
+
 ## 2026-05-31 — 5db7762
 **Daily: checkout success banner**
 - `checkout-success-banner.tsx`: New client component — shows green "You're now on HeaderGuard Pro!" flash when user returns from Stripe with `?checkout=success`; cleans query param via `window.history.replaceState` without page reload
