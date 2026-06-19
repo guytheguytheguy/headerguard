@@ -1,5 +1,12 @@
 # HeaderGuard Changelog
 
+## 2026-06-19 — (pending commit)
+**Daily: URL deep-link scanning + recent scans history + shareable result links**
+- `scan-form.tsx`: Added `?url=` query param auto-scan (loads and scans URL on page visit), localStorage recent-scans panel (last 5 scans shown as grade+URL chips for one-click re-scan), "Scan another URL" reset button below results, `useRef` guard to prevent double-scan in React StrictMode
+- `scan-results.tsx`: Share buttons now build a `?url=<scanned-url>` deep link — clicking a shared tweet/LinkedIn post auto-scans the referenced site (viral loop upgrade)
+- `page.tsx`: Wrapped `<ScanForm>` in `<Suspense>` (required by Next.js for `useSearchParams` in client components)
+- TypeScript: PASS · Unit tests: 19/19 PASS
+
 ## 2026-06-01 — d0a713d, 9e09cf0
 **Daily: social share buttons + Vercel deploy fix**
 - `scan-results.tsx`: Added `ShareResults` component — X/Twitter, LinkedIn, and copy-link buttons appear after every scan; share text includes URL, grade, and score for social proof

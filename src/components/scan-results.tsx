@@ -47,29 +47,29 @@ function ShareResults({ result }: { result: ScanResult }) {
   const [copied, setCopied] = useState(false);
 
   const shareText = `Just scanned ${result.url} with HeaderGuard — got a ${result.overallGrade} security grade (${result.score}/100). Check your site's HTTP security headers free 👇`;
-  const siteUrl = "https://headerguard.veridux.ai";
+  const scanLink = `https://headerguard.veridux.ai/?url=${encodeURIComponent(result.url)}`;
 
   const twitterUrl =
     "https://x.com/intent/tweet?text=" +
     encodeURIComponent(shareText) +
     "&url=" +
-    encodeURIComponent(siteUrl);
+    encodeURIComponent(scanLink);
 
   const linkedInUrl =
     "https://www.linkedin.com/sharing/share-offsite/?url=" +
-    encodeURIComponent(siteUrl) +
+    encodeURIComponent(scanLink) +
     "&summary=" +
     encodeURIComponent(shareText);
 
   const handleCopyLink = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(siteUrl);
+      await navigator.clipboard.writeText(scanLink);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Clipboard not available
     }
-  }, [siteUrl]);
+  }, [scanLink]);
 
   return (
     <div className="flex items-center gap-3 pt-2">

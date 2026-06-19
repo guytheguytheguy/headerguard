@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ScanForm } from "@/components/scan-form";
 import { CheckoutSuccessBanner } from "@/components/checkout-success-banner";
 
@@ -58,7 +59,9 @@ export default function HomePage() {
         </p>
       </div>
 
-      <ScanForm />
+      <Suspense fallback={<div className="h-16" />}>
+        <ScanForm />
+      </Suspense>
 
       <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white/5 rounded-lg p-6">
