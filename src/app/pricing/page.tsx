@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PLANS } from "@/lib/plans";
 import { UpgradeButton } from "@/components/upgrade-button";
 
@@ -24,12 +25,12 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
-          <a
+          <Link
             href="/"
             className="block text-center py-2.5 px-4 border border-white/20 rounded-lg text-sm font-medium hover:bg-white/5 transition-colors"
           >
             Get Started
-          </a>
+          </Link>
         </div>
 
         {/* Pro */}
