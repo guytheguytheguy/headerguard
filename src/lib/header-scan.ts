@@ -3,8 +3,10 @@ export type Grade = "A" | "B" | "C" | "D" | "F";
 
 export interface FixSnippets {
   nextjs: string;
+  express: string;
   nginx: string;
   apache: string;
+  cloudflare: string;
 }
 
 export interface HeaderCheck {
@@ -50,10 +52,19 @@ const SECURITY_HEADERS: {
   key: 'Strict-Transport-Security',
   value: 'max-age=63072000; includeSubDomains; preload',
 }`,
+      express: `// Express — npm install helmet
+const helmet = require('helmet');
+app.use(helmet.hsts({
+  maxAge: 63072000,
+  includeSubDomains: true,
+  preload: true,
+}));`,
       nginx: `# nginx.conf
 add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;`,
       apache: `# .htaccess
 Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"`,
+      cloudflare: `// Cloudflare Worker
+response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');`,
     },
     validate: (v) => {
       if (!v) return { grade: "F" };
@@ -77,10 +88,25 @@ Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains
   key: 'Content-Security-Policy',
   value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';",
 }`,
+      express: `// Express — npm install helmet
+const helmet = require('helmet');
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", "data:", "https:"],
+    fontSrc: ["'self'"],
+    connectSrc: ["'self'"],
+    frameAncestors: ["'none'"],
+  },
+}));`,
       nginx: `# nginx.conf
 add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';" always;`,
       apache: `# .htaccess
 Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';"`,
+      cloudflare: `// Cloudflare Worker
+response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; frame-ancestors 'none';");`,
     },
     validate: (v) => {
       if (!v) return { grade: "F" };
@@ -102,10 +128,15 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
   key: 'X-Content-Type-Options',
   value: 'nosniff',
 }`,
+      express: `// Express — npm install helmet
+const helmet = require('helmet');
+app.use(helmet.noSniff());`,
       nginx: `# nginx.conf
 add_header X-Content-Type-Options "nosniff" always;`,
       apache: `# .htaccess
 Header always set X-Content-Type-Options "nosniff"`,
+      cloudflare: `// Cloudflare Worker
+response.headers.set('X-Content-Type-Options', 'nosniff');`,
     },
     validate: (v) => {
       if (!v) return { grade: "F" };
@@ -125,10 +156,15 @@ Header always set X-Content-Type-Options "nosniff"`,
   key: 'X-Frame-Options',
   value: 'DENY',
 }`,
+      express: `// Express — npm install helmet
+const helmet = require('helmet');
+app.use(helmet.frameguard({ action: 'deny' }));`,
       nginx: `# nginx.conf
 add_header X-Frame-Options "DENY" always;`,
       apache: `# .htaccess
 Header always set X-Frame-Options "DENY"`,
+      cloudflare: `// Cloudflare Worker
+response.headers.set('X-Frame-Options', 'DENY');`,
     },
     validate: (v) => {
       if (!v) return { grade: "F" };
@@ -151,10 +187,15 @@ Header always set X-Frame-Options "DENY"`,
   key: 'Referrer-Policy',
   value: 'strict-origin-when-cross-origin',
 }`,
+      express: `// Express — npm install helmet
+const helmet = require('helmet');
+app.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }));`,
       nginx: `# nginx.conf
 add_header Referrer-Policy "strict-origin-when-cross-origin" always;`,
       apache: `# .htaccess
 Header always set Referrer-Policy "strict-origin-when-cross-origin"`,
+      cloudflare: `// Cloudflare Worker
+response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');`,
     },
     validate: (v) => {
       if (!v) return { grade: "F" };
@@ -177,10 +218,20 @@ Header always set Referrer-Policy "strict-origin-when-cross-origin"`,
   key: 'Permissions-Policy',
   value: 'camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()',
 }`,
+      express: `// Express
+app.use((req, res, next) => {
+  res.setHeader(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()'
+  );
+  next();
+});`,
       nginx: `# nginx.conf
 add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()" always;`,
       apache: `# .htaccess
 Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()"`,
+      cloudflare: `// Cloudflare Worker
+response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()');`,
     },
     validate: (v) => {
       if (!v) return { grade: "F" };
@@ -203,10 +254,15 @@ Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), 
   key: 'X-XSS-Protection',
   value: '0',
 }`,
+      express: `// Express — npm install helmet
+const helmet = require('helmet');
+app.use(helmet.xssFilter()); // Sets X-XSS-Protection: 0 (disabled in favour of CSP)`,
       nginx: `# nginx.conf
 add_header X-XSS-Protection "0" always;`,
       apache: `# .htaccess
 Header always set X-XSS-Protection "0"`,
+      cloudflare: `// Cloudflare Worker
+response.headers.set('X-XSS-Protection', '0');`,
     },
     validate: (v) => {
       if (!v) return { grade: "D" };
@@ -228,10 +284,15 @@ Header always set X-XSS-Protection "0"`,
   key: 'Cross-Origin-Opener-Policy',
   value: 'same-origin',
 }`,
+      express: `// Express — npm install helmet
+const helmet = require('helmet');
+app.use(helmet.crossOriginOpenerPolicy({ policy: 'same-origin' }));`,
       nginx: `# nginx.conf
 add_header Cross-Origin-Opener-Policy "same-origin" always;`,
       apache: `# .htaccess
 Header always set Cross-Origin-Opener-Policy "same-origin"`,
+      cloudflare: `// Cloudflare Worker
+response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');`,
     },
     validate: (v) => {
       if (!v) return { grade: "F" };
@@ -253,10 +314,15 @@ Header always set Cross-Origin-Opener-Policy "same-origin"`,
   key: 'Cross-Origin-Resource-Policy',
   value: 'same-origin',
 }`,
+      express: `// Express — npm install helmet
+const helmet = require('helmet');
+app.use(helmet.crossOriginResourcePolicy({ policy: 'same-origin' }));`,
       nginx: `# nginx.conf
 add_header Cross-Origin-Resource-Policy "same-origin" always;`,
       apache: `# .htaccess
 Header always set Cross-Origin-Resource-Policy "same-origin"`,
+      cloudflare: `// Cloudflare Worker
+response.headers.set('Cross-Origin-Resource-Policy', 'same-origin');`,
     },
     validate: (v) => {
       if (!v) return { grade: "F" };
@@ -278,10 +344,15 @@ Header always set Cross-Origin-Resource-Policy "same-origin"`,
   key: 'Cross-Origin-Embedder-Policy',
   value: 'require-corp',
 }`,
+      express: `// Express — npm install helmet
+const helmet = require('helmet');
+app.use(helmet.crossOriginEmbedderPolicy({ policy: 'require-corp' }));`,
       nginx: `# nginx.conf
 add_header Cross-Origin-Embedder-Policy "require-corp" always;`,
       apache: `# .htaccess
 Header always set Cross-Origin-Embedder-Policy "require-corp"`,
+      cloudflare: `// Cloudflare Worker
+response.headers.set('Cross-Origin-Embedder-Policy', 'require-corp');`,
     },
     validate: (v) => {
       if (!v) return { grade: "F" };

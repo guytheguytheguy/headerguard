@@ -47,7 +47,8 @@ function ShareResults({ result }: { result: ScanResult }) {
   const [copied, setCopied] = useState(false);
 
   const shareText = `Just scanned ${result.url} with HeaderGuard — got a ${result.overallGrade} security grade (${result.score}/100). Check your site's HTTP security headers free 👇`;
-  const scanLink = `https://headerguard.veridux.ai/?url=${encodeURIComponent(result.url)}`;
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://headerguard.agenticnode.io";
+  const scanLink = `${origin}/?url=${encodeURIComponent(result.url)}`;
 
   const twitterUrl =
     "https://x.com/intent/tweet?text=" +
@@ -110,8 +111,14 @@ function ShareResults({ result }: { result: ScanResult }) {
   );
 }
 
-type Platform = "nextjs" | "nginx" | "apache";
-const PLATFORM_LABELS: Record<Platform, string> = { nextjs: "Next.js", nginx: "Nginx", apache: "Apache" };
+type Platform = "nextjs" | "express" | "nginx" | "apache" | "cloudflare";
+const PLATFORM_LABELS: Record<Platform, string> = {
+  nextjs: "Next.js",
+  express: "Express",
+  nginx: "Nginx",
+  apache: "Apache",
+  cloudflare: "Cloudflare",
+};
 
 function FixSnippetsPanel({ snippets }: { snippets: FixSnippets }) {
   const [active, setActive] = useState<Platform>("nextjs");

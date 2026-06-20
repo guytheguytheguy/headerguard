@@ -1,5 +1,11 @@
 # HeaderGuard Changelog
 
+## 2026-06-21 — (pending commit)
+**Daily: Express + Cloudflare Workers fix snippets; dynamic share link domain**
+- `header-scan.ts`: Extended `FixSnippets` interface with `express` and `cloudflare` fields; populated all 10 security header definitions with helmet-based Express snippets and Cloudflare Worker `response.headers.set()` snippets — closes the gap between FAQ promises (Next.js, Express, Nginx, Apache, Cloudflare) and actual UI delivery
+- `scan-results.tsx`: Updated `Platform` type and `PLATFORM_LABELS` to include Express and Cloudflare as tabs in the fix snippet panel (5 platforms total); replaced hardcoded `headerguard.veridux.ai` in share link with `window.location.origin` so shareable URLs work across both custom domains
+- TypeScript: PASS · Unit tests: 19/19 PASS
+
 ## 2026-06-20 — 08b5a7f
 **Daily: platform-specific fix snippets in scan results**
 - `header-scan.ts`: Added `FixSnippets` interface (`nextjs`, `nginx`, `apache` string fields) and `fixSnippets` field to `HeaderCheck` type; populated all 10 security header definitions with copy-ready config code for each platform
