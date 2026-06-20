@@ -1,5 +1,11 @@
 # HeaderGuard Changelog
 
+## 2026-06-20 — 08b5a7f
+**Daily: platform-specific fix snippets in scan results**
+- `header-scan.ts`: Added `FixSnippets` interface (`nextjs`, `nginx`, `apache` string fields) and `fixSnippets` field to `HeaderCheck` type; populated all 10 security header definitions with copy-ready config code for each platform
+- `scan-results.tsx`: Added `FixSnippetsPanel` tabbed component — shows per-platform config code (Next.js / Nginx / Apache) under each failing header, with platform tab switching and a copy button; turns text advice into paste-ready fixes
+- TypeScript: PASS
+
 ## 2026-06-19 — a3f4a1d
 **Daily: URL deep-link scanning + recent scans history + shareable result links**
 - `scan-form.tsx`: Added `?url=` query param auto-scan (loads and scans URL on page visit), localStorage recent-scans panel (last 5 scans shown as grade+URL chips for one-click re-scan), "Scan another URL" reset button below results, `useRef` guard to prevent double-scan in React StrictMode
