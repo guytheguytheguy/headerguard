@@ -1,6 +1,12 @@
 export type Severity = "critical" | "high" | "medium" | "low" | "info";
 export type Grade = "A" | "B" | "C" | "D" | "F";
 
+export interface FixSnippets {
+  nextjs: string;
+  nginx: string;
+  apache: string;
+}
+
 export interface HeaderCheck {
   name: string;
   present: boolean;
@@ -9,6 +15,7 @@ export interface HeaderCheck {
   grade: Grade;
   description: string;
   recommendation: string;
+  fixSnippets: FixSnippets;
 }
 
 export interface ScanResult {
@@ -27,6 +34,7 @@ const SECURITY_HEADERS: {
   severity: Severity;
   description: string;
   recommendation: string;
+  fixSnippets: FixSnippets;
   validate: (value: string | null) => { grade: Grade; note?: string };
 }[] = [
   {
@@ -36,6 +44,17 @@ const SECURITY_HEADERS: {
     severity: "critical",
     description: "Enforces HTTPS connections to prevent protocol downgrade attacks and cookie hijacking.",
     recommendation: "Add: Strict-Transport-Security: max-age=63072000; includeSubDomains; preload",
+    fixSnippets: {
+      nextjs: `// next.config.ts — headers()
+{
+  key: 'Strict-Transport-Security',
+  value: 'max-age=63072000; includeSubDomains; preload',
+}`,
+      nginx: `# nginx.conf
+add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;`,
+      apache: `# .htaccess
+Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"`,
+    },
     validate: (v) => {
       if (!v) return { grade: "F" };
       const maxAge = parseInt(v.match(/max-age=(\d+)/)?.[1] || "0");
@@ -52,6 +71,17 @@ const SECURITY_HEADERS: {
     severity: "critical",
     description: "Prevents XSS, clickjacking, and code injection by whitelisting trusted content sources.",
     recommendation: "Add a strict CSP. Start with: Content-Security-Policy: default-src 'self'; script-src 'self'",
+    fixSnippets: {
+      nextjs: `// next.config.ts — headers()
+{
+  key: 'Content-Security-Policy',
+  value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';",
+}`,
+      nginx: `# nginx.conf
+add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';" always;`,
+      apache: `# .htaccess
+Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';"`,
+    },
     validate: (v) => {
       if (!v) return { grade: "F" };
       if (v.includes("default-src") && !v.includes("'unsafe-inline'") && !v.includes("'unsafe-eval'")) return { grade: "A" };
@@ -66,6 +96,17 @@ const SECURITY_HEADERS: {
     severity: "high",
     description: "Prevents MIME-type sniffing which can lead to XSS attacks.",
     recommendation: "Add: X-Content-Type-Options: nosniff",
+    fixSnippets: {
+      nextjs: `// next.config.ts — headers()
+{
+  key: 'X-Content-Type-Options',
+  value: 'nosniff',
+}`,
+      nginx: `# nginx.conf
+add_header X-Content-Type-Options "nosniff" always;`,
+      apache: `# .htaccess
+Header always set X-Content-Type-Options "nosniff"`,
+    },
     validate: (v) => {
       if (!v) return { grade: "F" };
       return v.toLowerCase() === "nosniff" ? { grade: "A" } : { grade: "D" };
@@ -78,6 +119,17 @@ const SECURITY_HEADERS: {
     severity: "high",
     description: "Prevents clickjacking by controlling whether the page can be embedded in iframes.",
     recommendation: "Add: X-Frame-Options: DENY (or SAMEORIGIN if iframes are needed)",
+    fixSnippets: {
+      nextjs: `// next.config.ts — headers()
+{
+  key: 'X-Frame-Options',
+  value: 'DENY',
+}`,
+      nginx: `# nginx.conf
+add_header X-Frame-Options "DENY" always;`,
+      apache: `# .htaccess
+Header always set X-Frame-Options "DENY"`,
+    },
     validate: (v) => {
       if (!v) return { grade: "F" };
       const val = v.toUpperCase();
@@ -93,6 +145,17 @@ const SECURITY_HEADERS: {
     severity: "medium",
     description: "Controls how much referrer information is sent with requests to protect user privacy.",
     recommendation: "Add: Referrer-Policy: strict-origin-when-cross-origin",
+    fixSnippets: {
+      nextjs: `// next.config.ts — headers()
+{
+  key: 'Referrer-Policy',
+  value: 'strict-origin-when-cross-origin',
+}`,
+      nginx: `# nginx.conf
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;`,
+      apache: `# .htaccess
+Header always set Referrer-Policy "strict-origin-when-cross-origin"`,
+    },
     validate: (v) => {
       if (!v) return { grade: "F" };
       const strict = ["no-referrer", "strict-origin", "strict-origin-when-cross-origin"];
@@ -108,6 +171,17 @@ const SECURITY_HEADERS: {
     severity: "medium",
     description: "Controls which browser features and APIs can be used (camera, microphone, geolocation, etc.).",
     recommendation: "Add: Permissions-Policy: camera=(), microphone=(), geolocation=()",
+    fixSnippets: {
+      nextjs: `// next.config.ts — headers()
+{
+  key: 'Permissions-Policy',
+  value: 'camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()',
+}`,
+      nginx: `# nginx.conf
+add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()" always;`,
+      apache: `# .htaccess
+Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=(), usb=()"`,
+    },
     validate: (v) => {
       if (!v) return { grade: "F" };
       const restrictions = v.split(",").length;
@@ -123,6 +197,17 @@ const SECURITY_HEADERS: {
     severity: "low",
     description: "Legacy XSS filter. Modern browsers use CSP instead, but still useful for older browsers.",
     recommendation: "Add: X-XSS-Protection: 0 (disable legacy filter, rely on CSP instead)",
+    fixSnippets: {
+      nextjs: `// next.config.ts — headers()
+{
+  key: 'X-XSS-Protection',
+  value: '0',
+}`,
+      nginx: `# nginx.conf
+add_header X-XSS-Protection "0" always;`,
+      apache: `# .htaccess
+Header always set X-XSS-Protection "0"`,
+    },
     validate: (v) => {
       if (!v) return { grade: "D" };
       if (v === "0") return { grade: "A", note: "Correctly disabled in favor of CSP" };
@@ -137,6 +222,17 @@ const SECURITY_HEADERS: {
     severity: "medium",
     description: "Isolates the browsing context to prevent Spectre-like side-channel attacks.",
     recommendation: "Add: Cross-Origin-Opener-Policy: same-origin",
+    fixSnippets: {
+      nextjs: `// next.config.ts — headers()
+{
+  key: 'Cross-Origin-Opener-Policy',
+  value: 'same-origin',
+}`,
+      nginx: `# nginx.conf
+add_header Cross-Origin-Opener-Policy "same-origin" always;`,
+      apache: `# .htaccess
+Header always set Cross-Origin-Opener-Policy "same-origin"`,
+    },
     validate: (v) => {
       if (!v) return { grade: "F" };
       if (v.toLowerCase() === "same-origin") return { grade: "A" };
@@ -151,6 +247,17 @@ const SECURITY_HEADERS: {
     severity: "medium",
     description: "Prevents other origins from loading your resources, blocking data leaks.",
     recommendation: "Add: Cross-Origin-Resource-Policy: same-origin",
+    fixSnippets: {
+      nextjs: `// next.config.ts — headers()
+{
+  key: 'Cross-Origin-Resource-Policy',
+  value: 'same-origin',
+}`,
+      nginx: `# nginx.conf
+add_header Cross-Origin-Resource-Policy "same-origin" always;`,
+      apache: `# .htaccess
+Header always set Cross-Origin-Resource-Policy "same-origin"`,
+    },
     validate: (v) => {
       if (!v) return { grade: "F" };
       if (v.toLowerCase() === "same-origin") return { grade: "A" };
@@ -165,6 +272,17 @@ const SECURITY_HEADERS: {
     severity: "medium",
     description: "Ensures all sub-resources are loaded with proper CORS or CORP headers for cross-origin isolation.",
     recommendation: "Add: Cross-Origin-Embedder-Policy: require-corp",
+    fixSnippets: {
+      nextjs: `// next.config.ts — headers()
+{
+  key: 'Cross-Origin-Embedder-Policy',
+  value: 'require-corp',
+}`,
+      nginx: `# nginx.conf
+add_header Cross-Origin-Embedder-Policy "require-corp" always;`,
+      apache: `# .htaccess
+Header always set Cross-Origin-Embedder-Policy "require-corp"`,
+    },
     validate: (v) => {
       if (!v) return { grade: "F" };
       if (v.toLowerCase() === "require-corp") return { grade: "A" };
@@ -228,6 +346,7 @@ export async function scanUrl(url: string): Promise<ScanResult> {
       grade,
       description: def.description,
       recommendation: def.recommendation,
+      fixSnippets: def.fixSnippets,
     };
   });
 

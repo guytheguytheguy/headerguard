@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { ScanResult, Grade, Severity } from "@/lib/header-scan";
+import type { ScanResult, Grade, Severity, FixSnippets } from "@/lib/header-scan";
 
 const GRADE_COLORS: Record<Grade, string> = {
   A: "text-green-400 border-green-400/30 bg-green-400/10",
@@ -110,6 +110,53 @@ function ShareResults({ result }: { result: ScanResult }) {
   );
 }
 
+type Platform = "nextjs" | "nginx" | "apache";
+const PLATFORM_LABELS: Record<Platform, string> = { nextjs: "Next.js", nginx: "Nginx", apache: "Apache" };
+
+function FixSnippetsPanel({ snippets }: { snippets: FixSnippets }) {
+  const [active, setActive] = useState<Platform>("nextjs");
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(snippets[active]);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ignore
+    }
+  }, [snippets, active]);
+
+  return (
+    <div className="mt-3 rounded-lg border border-white/10 bg-black/30 overflow-hidden">
+      <div className="flex items-center gap-0 border-b border-white/10">
+        {(Object.keys(PLATFORM_LABELS) as Platform[]).map((p) => (
+          <button
+            key={p}
+            onClick={() => setActive(p)}
+            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+              active === p
+                ? "text-white bg-white/10 border-b-2 border-blue-400"
+                : "text-gray-500 hover:text-gray-300"
+            }`}
+          >
+            {PLATFORM_LABELS[p]}
+          </button>
+        ))}
+        <button
+          onClick={handleCopy}
+          className="ml-auto mr-2 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+        >
+          {copied ? "✓ copied" : "copy"}
+        </button>
+      </div>
+      <pre className="p-3 text-xs text-green-300 font-mono whitespace-pre-wrap break-all leading-relaxed">
+        {snippets[active]}
+      </pre>
+    </div>
+  );
+}
+
 export function ScanResults({ result }: { result: ScanResult }) {
   const passed = result.headers.filter((h) => h.grade === "A" || h.grade === "B").length;
   const failed = result.headers.filter((h) => h.grade === "F").length;
@@ -166,12 +213,15 @@ export function ScanResults({ result }: { result: ScanResult }) {
             <p className="text-xs text-gray-400 mb-1">{header.description}</p>
 
             {header.grade !== "A" && (
-              <div className="flex items-start gap-1 mt-2">
-                <p className="text-xs text-red-300 font-mono break-all flex-1">
-                  {header.recommendation}
-                </p>
-                <CopyButton text={header.recommendation} />
-              </div>
+              <>
+                <div className="flex items-start gap-1 mt-2">
+                  <p className="text-xs text-red-300 font-mono break-all flex-1">
+                    {header.recommendation}
+                  </p>
+                  <CopyButton text={header.recommendation} />
+                </div>
+                <FixSnippetsPanel snippets={header.fixSnippets} />
+              </>
             )}
           </div>
         ))}
