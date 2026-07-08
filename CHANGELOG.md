@@ -1,6 +1,6 @@
 # HeaderGuard Changelog
 
-## 2026-07-08 — (pending sha)
+## 2026-07-08 — 297427a / dpl_JCdDgVYrhEV5XLVqmDCqLdApCYpb
 **Daily: fix OG image flex error, add newsletter subscribe API, set Supabase env vars**
 - `opengraph-image.tsx`: Created new OG image using `@vercel/og` with correct `display: flex` on every container — fixes long-running "Expected <div> to have display: flex" edge runtime error on `/opengraph-image`
 - `api/subscribe/route.ts`: Created Buttondown newsletter API route — handles subscribe POST, validates email, returns 503 when `BUTTONDOWN_API_KEY` unset (graceful), handles already-subscribed as success; fixes 500 errors on `/api/subscribe`
