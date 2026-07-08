@@ -1,5 +1,12 @@
 # HeaderGuard Changelog
 
+## 2026-07-08 — (pending sha)
+**Daily: fix OG image flex error, add newsletter subscribe API, set Supabase env vars**
+- `opengraph-image.tsx`: Created new OG image using `@vercel/og` with correct `display: flex` on every container — fixes long-running "Expected <div> to have display: flex" edge runtime error on `/opengraph-image`
+- `api/subscribe/route.ts`: Created Buttondown newsletter API route — handles subscribe POST, validates email, returns 503 when `BUTTONDOWN_API_KEY` unset (graceful), handles already-subscribed as success; fixes 500 errors on `/api/subscribe`
+- **Vercel env vars set** (via CLI): `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` now live in production — auth & checkout now have Supabase connectivity (Stripe keys still need human action)
+- Build: PASS (12 routes, TypeScript clean) · Unit tests: 19/19 PASS
+
 ## 2026-06-21 — 05633ca
 **Daily: Express + Cloudflare Workers fix snippets; dynamic share link domain**
 - `header-scan.ts`: Extended `FixSnippets` interface with `express` and `cloudflare` fields; populated all 10 security header definitions with helmet-based Express snippets and Cloudflare Worker `response.headers.set()` snippets — closes the gap between FAQ promises (Next.js, Express, Nginx, Apache, Cloudflare) and actual UI delivery
