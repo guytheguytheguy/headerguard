@@ -22,14 +22,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Valid email required" }, { status: 400 });
   }
 
-  const res = await fetch("https://api.buttondown.email/v1/subscribers", {
-    method: "POST",
-    headers: {
-      Authorization: `Token ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email_address: email }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  let res: Response;
+  try {
+    res = await fetch("https://api.buttondown.email/v1/subscribers", {
+      method: "POST",
+      headers: {
+        Authorization: `Token ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email_address: email }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    const isTimeout = err instanceof DOMException && err.name === "AbortError";
+    console.error("[subscribe] Buttondown request failed", isTimeout ? "timeout" : err);
+    return NextResponse.json(
+      { error: "Newsletter service unavailable, please try again later" },
+      { status: 503 }
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (res.status === 201) {
     return NextResponse.json({ ok: true });

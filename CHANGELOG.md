@@ -1,5 +1,16 @@
 # HeaderGuard Changelog
 
+## 2026-07-13 — daily: ground-truth verification + webhook/subscribe error-handling hardening
+**Verified projects.json discrepancy; fixed 2 real error-handling gaps**
+- **Vercel project ID CONFIRMED**: `.vercel/project.json` in this repo has `projectId: prj_tYEnB8cMJOWkL9ppukP5GWtYzHMr`, `orgId: team_O4R56JsPNOa1IJYUZ5FlHQ42` — matches `prompts/per-project/headerguard.md` exactly. `dashboard/projects.json`'s `vercelProjectId: null` is stale/wrong (known portfolio-wide silent-overwrite bug).
+- **GitHub repo finding is more nuanced than either source states**: `microsaas/headerguard/dev` (this directory) is its own standalone git repo nested inside the `guytheguytheguy/apps` monorepo working tree, with **no `git remote` configured at all** — never pushed anywhere. The parent monorepo only tracks it as a gitlink (mode 160000, like an unregistered submodule); confirmed via `gh api repos/guytheguytheguy/apps/contents/microsaas/headerguard/dev` which returns `html_url: null, git_url: null, size: 0` for the `dev` path — i.e. GitHub has a dangling commit pointer, not the actual source. **The real HeaderGuard source code has zero off-machine backup.** `dashboard/projects.json`'s `githubRepo: null` is actually closer to the truth than the per-project prompt's claimed `guytheguytheguy/apps`.
+- **Test counts**: 19/19 unit tests pass (Vitest) — matches claim. E2E: **23/23 pass**, not 13 as the per-project prompt states — the "13" figure traces to this very CHANGELOG's own stale "Earlier" summary line ("E2E tests (13 tests, scan-flow.spec.ts)") from the initial implementation, never updated as `scan-flow.spec.ts` grew to its current 23 tests across 4 describe blocks.
+- Build: PASS (12 routes, TypeScript clean). Live site: `https://headerguard.veridux.ai/` → HTTP 200 confirmed.
+- **Real fixes applied** (found while auditing API routes for error handling per the no-mocks/production-ready policy):
+  - `api/subscribe/route.ts`: outbound `fetch()` to Buttondown had no try/catch or timeout — a DNS failure or Buttondown outage would throw an unhandled exception (generic 500) instead of a graceful error. Added `AbortController` (10s timeout) + try/catch returning `503`.
+  - `api/webhooks/stripe/route.ts`: the event-type switch block ran unguarded — `getServiceClient()` can throw synchronously on missing env vars, and none of the four Supabase `.update()` calls checked their `{error}` result, so DB failures were silently swallowed with no log line. Wrapped the switch in try/catch (still returns 200 to Stripe — a config/DB failure isn't fixed by Stripe's retry storm) and now logs every `{error}` from each `.update()` call.
+- TypeScript: PASS · Unit tests: 19/19 PASS · E2E: 23/23 PASS · Build: PASS
+
 ## 2026-07-08 — 297427a / dpl_JCdDgVYrhEV5XLVqmDCqLdApCYpb
 **Daily: fix OG image flex error, add newsletter subscribe API, set Supabase env vars**
 - `opengraph-image.tsx`: Created new OG image using `@vercel/og` with correct `display: flex` on every container — fixes long-running "Expected <div> to have display: flex" edge runtime error on `/opengraph-image`
