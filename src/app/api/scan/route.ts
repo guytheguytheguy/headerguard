@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { scanUrl } from "@/lib/header-scan";
+import { SsrfBlockedError } from "@/lib/ssrf-guard";
 
 export async function POST(request: NextRequest) {
   let body: { url?: string };
@@ -36,6 +37,9 @@ export async function POST(request: NextRequest) {
     const result = await scanUrl(parsedUrl.toString());
     return NextResponse.json(result);
   } catch (err) {
+    if (err instanceof SsrfBlockedError) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
     const message = err instanceof Error ? err.message : "Scan failed";
     return NextResponse.json({ error: message }, { status: 502 });
   }

@@ -200,6 +200,46 @@ describe("scanUrl — individual header grading", () => {
   });
 });
 
+describe("scanUrl — SSRF protection", () => {
+  it("rejects scanning localhost", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await expect(scanUrl("https://localhost:3000")).rejects.toThrow(/not allowed/i);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects scanning a literal private IP", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await expect(scanUrl("https://192.168.1.1")).rejects.toThrow(/not allowed/i);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects scanning the cloud metadata IP", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await expect(scanUrl("http://169.254.169.254/latest/meta-data/")).rejects.toThrow(/not allowed/i);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("blocks a redirect that hops from a public host to a private address", async () => {
+    const fetchSpy = vi
+      .fn()
+      // First hop: public URL returns a 302 to an internal address
+      .mockResolvedValueOnce({
+        status: 302,
+        headers: new Headers({ location: "http://169.254.169.254/latest/meta-data/" }),
+      });
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await expect(scanUrl("https://example.com")).rejects.toThrow(/not allowed/i);
+    expect(fetchSpy).toHaveBeenCalledTimes(1); // never followed the malicious redirect
+  });
+});
+
 describe("scanUrl — error handling", () => {
   it("throws on timeout (AbortError)", async () => {
     vi.stubGlobal(

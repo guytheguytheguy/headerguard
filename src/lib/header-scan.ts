@@ -1,3 +1,5 @@
+import { assertPublicHostname, SsrfBlockedError } from "./ssrf-guard";
+
 export type Severity = "critical" | "high" | "medium" | "low" | "info";
 export type Grade = "A" | "B" | "C" | "D" | "F";
 
@@ -373,22 +375,57 @@ function calculateOverallGrade(score: number): Grade {
   return "F";
 }
 
+const MAX_REDIRECTS = 5;
+
+/**
+ * Fetches `url` with SSRF protection: the hostname is resolved and checked
+ * against private/reserved IP ranges before the request, and again before
+ * every redirect hop is followed (redirects are handled manually rather than
+ * via `redirect: "follow"` so a public URL can't 302 into an internal
+ * address or a cloud metadata endpoint).
+ */
+async function fetchWithGuard(startUrl: string, signal: AbortSignal): Promise<Response> {
+  let currentUrl = startUrl;
+
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    const target = new URL(currentUrl);
+    await assertPublicHostname(target.hostname);
+
+    const response = await fetch(target.toString(), {
+      method: "HEAD",
+      signal,
+      redirect: "manual",
+      headers: { "User-Agent": "HeaderGuard/1.0 (Security Scanner)" },
+    });
+
+    const isRedirect = response.status >= 300 && response.status < 400;
+    const location = response.headers.get("location");
+    if (!isRedirect || !location) {
+      return response;
+    }
+    if (hop === MAX_REDIRECTS) {
+      throw new Error(`Too many redirects while scanning ${startUrl}`);
+    }
+    currentUrl = new URL(location, target).toString();
+  }
+
+  throw new Error(`Too many redirects while scanning ${startUrl}`);
+}
+
 export async function scanUrl(url: string): Promise<ScanResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
 
   let response: Response;
   try {
-    response = await fetch(url, {
-      method: "HEAD",
-      signal: controller.signal,
-      redirect: "follow",
-      headers: { "User-Agent": "HeaderGuard/1.0 (Security Scanner)" },
-    });
+    response = await fetchWithGuard(url, controller.signal);
   } catch (err) {
     clearTimeout(timeout);
     if (err instanceof DOMException && err.name === "AbortError") {
       throw new Error(`Timeout: ${url} did not respond within 10 seconds`);
+    }
+    if (err instanceof SsrfBlockedError) {
+      throw err;
     }
     throw new Error(`Failed to reach ${url}: ${err instanceof Error ? err.message : "Network error"}`);
   } finally {
