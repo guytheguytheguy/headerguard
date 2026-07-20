@@ -1,13 +1,14 @@
 # HeaderGuard Changelog
 
-## 2026-07-20 (later) — daily: re-verify build/tests, no code changes needed
-**Closes the one open gap flagged by the earlier run today — `npm run build` didn't finish under machine load**
-- `npm run build`: now completes cleanly (12 routes, TypeScript clean) — the earlier same-day run's build was CPU-starved by ~70 concurrent `node.exe` processes from other portfolio agents, not a real break. No code changes were needed; machine load had simply dropped.
-- `vitest run`: **74/74 pass** (unchanged from the earlier run today — scan-limit + webhook work already landed and verified).
-- `playwright test`: **23/23 pass** (full clean run, no flake this time). Local E2E run has no `SUPABASE_URL` in its env, so `scan-limit.ts`'s fail-open path threw and logged `count query threw: supabaseUrl is required` on every scan — this is the fail-open behavior working exactly as designed (scans still succeeded), not a bug.
+## 2026-07-20 (later) — daily: re-verify build/tests + ship 4-day-old unpushed fixes to production via manual deploy
+**Found and closed a real production gap: the 2026-07-17 SSRF fix was never actually live**
+- `npm run build`: now completes cleanly (12 routes, TypeScript clean) — the earlier same-day run's build was CPU-starved by ~70 concurrent `node.exe` processes from other portfolio agents, not a real break.
+- `vitest run`: **74/74 pass**. `playwright test`: **23/23 pass** (full clean run, no flake). Local E2E has no `SUPABASE_URL` in its env, so `scan-limit.ts`'s fail-open path threw and logged `count query threw: supabaseUrl is required` on every scan — fail-open working exactly as designed (scans still succeeded), not a bug.
+- **Critical finding**: `list_deployments` via Vercel MCP showed the latest production deployment was `dpl_3zhRqfCRNxAjNuRAhcSu58dnk7WG` from **2026-07-16** (commit `37a4a68`). Because Vercel auto-deploys from pushes to `origin/main`, and the git-divergence blocker has silently rejected every push to `origin/main` since before 2026-07-13, **the 2026-07-17 SSRF fix (`e3a972d`) and today's scan-limit/webhook work were committed and backed up but never actually deployed** — production was serving SSRF-vulnerable code for 4 days after the fix was "shipped."
+- Fixed by running `vercel --prod` directly against the current (already-tested, already-committed) build output — this is a pure deployment action, does not touch git history, and follows the same manual-deploy pattern already established in this file's 2026-07-16 entry. New deployment `dpl_8nmWRSiDWByTLSdicVxzZCAJQLri`, READY, aliased to `headerguard.veridux.ai`.
+- Live-verified post-deploy: `POST /api/scan` with `http://localhost` and `http://169.254.169.254` both correctly return `400` SSRF-blocked errors; a normal scan of `https://example.com` still succeeds. The SSRF guard and scan-limit enforcement are now actually live in production, not just committed.
 - Live re-confirmed: `headerguard.veridux.ai` homepage 200, `/pricing` 200, `POST /api/checkout` still `503 {"error":"Billing not configured"}`.
-- Git divergence unchanged: `git merge-base main origin/main` still empty, `origin/main` still only the 2026-06-25 initial commit; local `main` (`6f19dcb`) matches today's already-pushed `backup-local-main-20260720` exactly — nothing new to back up. Still needs human reconciliation decision, not force-pushed.
-- No code changes this run — pure re-verification. All three standing blockers (Stripe env vars, git divergence, `headerguard.com` DNS) remain human-only and unchanged.
+- Git divergence unchanged: `git merge-base main origin/main` still empty, `origin/main` still only the 2026-06-25 initial commit; local `main` pushed to `backup-local-main-20260720`. Still needs human reconciliation decision, not force-pushed. **Note for future runs**: given Vercel's git-based auto-deploy is silently broken by this blocker, do not assume a green `git push` means production is updated — check `list_deployments` and manually `vercel --prod` when a code change needs to actually reach users.
 
 ## 2026-07-20 — daily: real Supabase-backed free-tier scan-limit enforcement + landed prior day's unfinished webhook fix
 **Ships the P2 "scansPerDay=3 not enforced" gap flagged 2026-07-17, using tables that already existed in Supabase but were never wired into the app code**
