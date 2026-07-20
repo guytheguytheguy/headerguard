@@ -1,5 +1,14 @@
 # HeaderGuard Changelog
 
+## 2026-07-20 (later) — daily: re-verify build/tests, no code changes needed
+**Closes the one open gap flagged by the earlier run today — `npm run build` didn't finish under machine load**
+- `npm run build`: now completes cleanly (12 routes, TypeScript clean) — the earlier same-day run's build was CPU-starved by ~70 concurrent `node.exe` processes from other portfolio agents, not a real break. No code changes were needed; machine load had simply dropped.
+- `vitest run`: **74/74 pass** (unchanged from the earlier run today — scan-limit + webhook work already landed and verified).
+- `playwright test`: **23/23 pass** (full clean run, no flake this time). Local E2E run has no `SUPABASE_URL` in its env, so `scan-limit.ts`'s fail-open path threw and logged `count query threw: supabaseUrl is required` on every scan — this is the fail-open behavior working exactly as designed (scans still succeeded), not a bug.
+- Live re-confirmed: `headerguard.veridux.ai` homepage 200, `/pricing` 200, `POST /api/checkout` still `503 {"error":"Billing not configured"}`.
+- Git divergence unchanged: `git merge-base main origin/main` still empty, `origin/main` still only the 2026-06-25 initial commit; local `main` (`6f19dcb`) matches today's already-pushed `backup-local-main-20260720` exactly — nothing new to back up. Still needs human reconciliation decision, not force-pushed.
+- No code changes this run — pure re-verification. All three standing blockers (Stripe env vars, git divergence, `headerguard.com` DNS) remain human-only and unchanged.
+
 ## 2026-07-20 — daily: real Supabase-backed free-tier scan-limit enforcement + landed prior day's unfinished webhook fix
 **Ships the P2 "scansPerDay=3 not enforced" gap flagged 2026-07-17, using tables that already existed in Supabase but were never wired into the app code**
 - Found the `headerguard` Supabase project (`kyscibpwchcvsvkgkfea`, verified live via Supabase MCP) already has a `subscriptions` table (plan/status/stripe ids, with the exact status check constraint the webhook code expects) and a `scans` table (user_id, ip_address, url, grade, score, scanned_at) -- clearly designed for exactly this purpose but never referenced anywhere in the app's source.
