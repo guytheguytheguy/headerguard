@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { getServiceClient } from "@/lib/supabase";
 
+// Mirrors the `subscriptions.status` check constraint in Supabase:
+// active | trialing | canceled | past_due | incomplete
+const ALLOWED_STATUSES = new Set(["active", "trialing", "canceled", "past_due", "incomplete"]);
+
+function toSubscriptionStatus(stripeStatus: string): string {
+  return ALLOWED_STATUSES.has(stripeStatus) ? stripeStatus : "past_due";
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get("stripe-signature");
@@ -32,15 +40,20 @@ export async function POST(request: NextRequest) {
         const userId = session.metadata?.userId;
         if (userId) {
           const { error } = await supabase
-            .from("profiles")
-            .update({
-              plan: "pro",
-              stripe_customer_id: session.customer as string,
-              stripe_subscription_id: session.subscription as string,
-            })
-            .eq("id", userId);
+            .from("subscriptions")
+            .upsert(
+              {
+                user_id: userId,
+                plan: "pro",
+                status: "active",
+                stripe_customer_id: session.customer as string,
+                stripe_sub_id: session.subscription as string,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "user_id" }
+            );
           if (error) {
-            console.error("[webhook] checkout.session.completed profile update failed:", error.message);
+            console.error("[webhook] checkout.session.completed subscription upsert failed:", error.message);
           }
         }
         break;
@@ -50,11 +63,11 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object;
         const customerId = subscription.customer as string;
         const { error } = await supabase
-          .from("profiles")
-          .update({ plan: "free", stripe_subscription_id: null })
+          .from("subscriptions")
+          .update({ plan: "free", status: "canceled", updated_at: new Date().toISOString() })
           .eq("stripe_customer_id", customerId);
         if (error) {
-          console.error("[webhook] customer.subscription.deleted profile update failed:", error.message);
+          console.error("[webhook] customer.subscription.deleted subscription update failed:", error.message);
         }
         break;
       }
@@ -62,23 +75,14 @@ export async function POST(request: NextRequest) {
       case "customer.subscription.updated": {
         const subscription = event.data.object;
         const customerId = subscription.customer as string;
-        const status = subscription.status;
-        if (status === "active") {
-          const { error } = await supabase
-            .from("profiles")
-            .update({ plan: "pro" })
-            .eq("stripe_customer_id", customerId);
-          if (error) {
-            console.error("[webhook] customer.subscription.updated (active) profile update failed:", error.message);
-          }
-        } else if (status === "canceled" || status === "unpaid") {
-          const { error } = await supabase
-            .from("profiles")
-            .update({ plan: "free" })
-            .eq("stripe_customer_id", customerId);
-          if (error) {
-            console.error("[webhook] customer.subscription.updated (canceled/unpaid) profile update failed:", error.message);
-          }
+        const status = toSubscriptionStatus(subscription.status);
+        const plan = status === "active" || status === "trialing" ? "pro" : "free";
+        const { error } = await supabase
+          .from("subscriptions")
+          .update({ plan, status, updated_at: new Date().toISOString() })
+          .eq("stripe_customer_id", customerId);
+        if (error) {
+          console.error("[webhook] customer.subscription.updated subscription update failed:", error.message);
         }
         break;
       }
