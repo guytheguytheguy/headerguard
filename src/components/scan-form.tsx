@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import type { ScanResult } from "@/lib/header-scan";
+import { getSupabase } from "@/lib/supabase";
 import { ScanResults } from "./scan-results";
 
 interface RecentScan {
@@ -63,16 +64,31 @@ export function ScanForm() {
     setResult(null);
 
     try {
+      let accessToken: string | undefined;
+      try {
+        const {
+          data: { session },
+        } = await getSupabase().auth.getSession();
+        accessToken = session?.access_token;
+      } catch {
+        // Not signed in / Supabase unavailable -- scan proceeds as an anonymous request.
+      }
+
       const res = await fetch("/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: target }),
+        body: JSON.stringify({ url: target, accessToken }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Scan failed. Please try again.");
+        setError(
+          data.error ||
+            (res.status === 429
+              ? "Daily free-tier scan limit reached. Upgrade to Pro for unlimited scans."
+              : "Scan failed. Please try again.")
+        );
         return;
       }
 
@@ -134,7 +150,9 @@ export function ScanForm() {
       </div>
 
       <p className="text-xs text-gray-500 -mt-3">
-        We send a single HEAD request to fetch response headers. No data is stored.
+        We send a single HEAD request to fetch response headers. No content from your site is
+        stored -- we only keep the scanned URL, grade, and score to enforce the free-tier daily
+        scan limit.
       </p>
 
       {error && (
