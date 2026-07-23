@@ -1,5 +1,13 @@
 # HeaderGuard Changelog
 
+## 2026-07-23 — daily: re-verify build/tests, no drift, no code changes needed
+**7th consecutive clean daily check — no new CVE for this project's stack this cycle**
+- Checked whether today's portfolio-wide `next`/`sharp`/`postcss` CVE batch (already patched in CronPilot today via npm overrides) applies here: `npm ls sharp postcss` shows `sharp@0.34.5` and `postcss@8.4.31` are both nested transitive deps of `next@15.5.21` (already the latest patched line since 2026-07-22) — `npm audit` does not flag either as vulnerable at these resolved versions, so no action needed.
+- `npm run build`: clean (12 routes, TypeScript clean, `Next.js 15.5.21` confirmed in build log). `vitest run`: **74/74 pass**. `playwright test`: **23/23 pass**, no flake.
+- `npm audit`: still 12 issues (1 critical, 8 high), unchanged from 2026-07-22, all in devDependencies only (vite/vitest/esbuild/ws) — none shipped to prod, left for a future pass.
+- Live-verified via `list_deployments`: latest production deployment is still `dpl_CvKzCCEWE4HAEBirduqNjBrxVpiw` (commit `d710956`, READY) — no drift between local HEAD and what's actually serving traffic (today's only local commit since then is this docs-only entry, no redeploy needed). Live curl: homepage 200, SSRF guard still blocks `169.254.169.254` (400), a normal scan of `example.com` still succeeds (200), `POST /api/checkout` still `503 {"error":"Billing not configured"}`.
+- All 3 standing blockers re-confirmed unchanged, all human-only: (1) REVENUE — Stripe env vars still unset in Vercel prod. (2) GIT — `origin/main` still diverged (unrelated history, `git merge-base` empty, local `main` now 43 commits ahead with no common ancestor), 7th consecutive daily run without a human reconciliation decision; did not force-push. (3) DNS — `headerguard.com` apex still parked at the registrar (`185.212.70.120`, times out on plain HTTP), never pointed at Vercel; `headerguard.veridux.ai` and `headerguard.agenticnode.io` both live and healthy (200).
+
 ## 2026-07-22 — daily: patch Next.js CVE (15.5.12 → 15.5.21), re-verify + ship
 **Closes the same portfolio-wide Next.js security gap already fixed in WhoHitsMyAPI/vibecoding-newsletter (2026-07-21) — HeaderGuard was still on the vulnerable line**
 - Confirmed via `npm ls next`: production dependency was pinned to `next@15.5.12`, unpatched against the 2026-07-21 Next.js security release (SSRF CVSS 8.6 + middleware auth-bypass CVSS 8.1).
