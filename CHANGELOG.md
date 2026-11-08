@@ -168,3 +168,6 @@
 - CSP and security headers in next.config.ts
 - E2E tests (13 tests, scan-flow.spec.ts)
 - Initial implementation: scan engine, A-F grading, 10 headers
+
+## 2026-11-08
+- [headerguard] 5624e16: bumped next 15.5.21 -> 15.5.29 (npm audit fix; cleared critical + 4 high prod advisories). Build pass, 74/74 tests. Shipped via manual `vercel --prod` (dpl_C6anDuuRKVrhVTyqY7QrUt3rwDTD READY). origin/main still diverged; pushed to backup-local-main-20261108.
